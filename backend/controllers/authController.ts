@@ -10,7 +10,7 @@ export const registerUser = async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body;
 
   try {
-    // Check if user already exists
+    // 1. Check if user already exists
     const { data: userExists, error: userExistsError } = await supabase
       .from('User')
       .select('*')
@@ -24,11 +24,11 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash the password
+    // 2. Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Save the new user to the database
+    // 3. Save the new user to the User table
     const { data: newUser, error: newUserError } = await supabase
       .from('User')
       .insert([
@@ -40,21 +40,34 @@ export const registerUser = async (req: Request, res: Response) => {
       throw newUserError;
     }
 
-    // Conditionally create a record in the Doctor table if the role is 'doctor'
+    const newUserId = newUser[0].user_id;
+
+    // 4. Conditionally create a record in the Doctor or Patient table
+    // This works because all auxiliary columns are now NULLABLE.
     if (role === 'doctor') {
       const { error: doctorInsertError } = await supabase
         .from('Doctor')
         .insert([
-          { user_id: newUser[0].user_id } // Link the new doctor to the user ID
+          { user_id: newUserId } 
         ]);
 
       if (doctorInsertError) {
         throw doctorInsertError;
       }
+    } else if (role === 'patient') {
+      const { error: patientInsertError } = await supabase
+        .from('Patient')
+        .insert([
+          { user_id: newUserId }
+        ]);
+
+      if (patientInsertError) {
+        throw patientInsertError;
+      }
     }
 
-    // Generate a token
-    const token = jwt.sign({ id: newUser[0].user_id, role: newUser[0].role }, JWT_SECRET, { expiresIn: '1h' });
+    // 5. Generate a token
+    const token = jwt.sign({ id: newUserId, role: newUser[0].role }, JWT_SECRET, { expiresIn: '1h' });
 
     res.status(201).json({ message: 'User registered successfully', token, role: newUser[0].role });
   } catch (error) {
@@ -68,7 +81,7 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    // Check if user exists
+    // 1. Check if user exists
     const { data: user, error: userError } = await supabase
       .from('User')
       .select('*')
@@ -82,13 +95,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Compare passwords
+    // 2. Compare passwords
     const isMatch = await bcrypt.compare(password, user[0].password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Generate and return a token
+    // 3. Generate and return a token
     const token = jwt.sign({ id: user[0].user_id, role: user[0].role }, JWT_SECRET, { expiresIn: '1h' });
 
     res.status(200).json({ message: 'Logged in successfully', token, role: user[0].role });
