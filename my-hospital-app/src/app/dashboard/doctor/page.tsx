@@ -1,116 +1,123 @@
 'use client';
 
-import { useState } from 'react';
+import DashboardNavbar from '../../../components/DashboardNavbar';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function DoctorSignupPage() {
+interface DoctorProfile {
+  name: string;
+  email: string;
+  role: string;
+  // Ensure your backend query fetches this Doctor object
+  Doctor: {
+    specialization: string;
+  };
+}
+
+export default function DoctorDashboard() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState('');
+  const [profileData, setProfileData] = useState<DoctorProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Doctor's specific navigation links
+  const doctorNavLinks = [
+    { name: 'Profile', href: '/dashboard/doctor/profile' },
+    { name: 'Appointments', href: '/dashboard/doctor/appointments' },
+    { name: 'Patients', href: '/dashboard/doctor/patients' },
+  ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+      try {
+        // This fetches the doctor's name and details
+        const response = await axios.get('http://localhost:5000/api/doctor/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProfileData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch doctor profile data:', error);
+        // On failure (e.g., token expired), clear token and redirect
+        localStorage.removeItem('token');
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    try {
-      await axios.post('http://localhost:5000/api/auth/register', {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: 'doctor',
-      });
-      alert('Doctor registration successful!');
-      router.push('/login');
-    } catch (error) {
-      setError('Registration failed. Please try again.');
-      console.error('Registration error:', error);
-    }
-  };
+    fetchProfile();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <h1 className="text-2xl font-bold">Loading Doctor Portal...</h1>
+      </div>
+    );
+  }
+
+  // Handle case where profile data is not found
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4">Profile data not found.</h1>
+          <p>Please log in again or contact support.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">Doctor Sign Up</h1>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
+    <div className="min-h-screen bg-gray-100">
+      <DashboardNavbar 
+        title="Doctor Portal" 
+        navLinks={doctorNavLinks} 
+        userName={profileData.name} 
+      />
+      <main className="container mx-auto py-12 px-6">
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">
+          Welcome, Dr. {profileData.name}
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          
+          {/* Profile Card */}
+          <div className="bg-white p-6 rounded-lg shadow-md transition-transform duration-300 hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-4 text-blue-600">My Profile</h2>
+            <p className="text-gray-600 mb-4">View and update your professional information and credentials.</p>
+            <Link href="/dashboard/doctor/profile" className="text-blue-500 hover:underline font-semibold">
+              View Profile &rarr;
+            </Link>
           </div>
-          <div>
-            <label className="block text-gray-700">Email Address</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
+          
+          {/* Appointments Card */}
+          <div className="bg-white p-6 rounded-lg shadow-md transition-transform duration-300 hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-4 text-green-600">Appointments</h2>
+            <p className="text-gray-600 mb-4">View and manage your upcoming appointments and patient schedules.</p>
+            <Link href="/dashboard/doctor/appointments" className="text-green-500 hover:underline font-semibold">
+              View Appointments &rarr;
+            </Link>
           </div>
-          <div>
-            <label className="block text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
+          
+          {/* Patients Card */}
+          <div className="bg-white p-6 rounded-lg shadow-md transition-transform duration-300 hover:scale-105">
+            <h2 className="text-2xl font-semibold mb-4 text-purple-600">My Patients</h2>
+            <p className="text-gray-600 mb-4">Access a list of your patients and their medical records.</p>
+            <Link href="/dashboard/doctor/patients" className="text-purple-500 hover:underline font-semibold">
+              View Patients &rarr;
+            </Link>
           </div>
-          <div>
-            <label className="block text-gray-700">Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full p-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition duration-300"
-          >
-            Sign Up as Doctor
-          </button>
-        </form>
-        <p className="mt-4 text-center text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-500 hover:underline">
-            Log in
-          </Link>
-        </p>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

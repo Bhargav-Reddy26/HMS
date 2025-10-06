@@ -5,13 +5,13 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function PatientSignupPage() {
+export default function DoctorSignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: '', // New field for confirming password
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
 
@@ -23,7 +23,6 @@ export default function PatientSignupPage() {
     e.preventDefault();
     setError('');
 
-    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -34,9 +33,9 @@ export default function PatientSignupPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: 'patient',
+        role: 'doctor',
       });
-      alert('Patient registration successful!');
+      alert('Doctor registration successful!');
       router.push('/login');
     } catch (error) {
       setError('Registration failed. Please try again.');
@@ -47,7 +46,7 @@ export default function PatientSignupPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">Patient Sign Up</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">Doctor Sign Up</h1>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -100,9 +99,9 @@ export default function PatientSignupPage() {
           </div>
           <button
             type="submit"
-            className="w-full p-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition duration-300"
+            className="w-full p-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition duration-300"
           >
-            Sign Up as Patient
+            Sign Up as Doctor
           </button>
         </form>
         <p className="mt-4 text-center text-gray-600">
