@@ -12,10 +12,11 @@ export default function StaffSignupPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    designation: 'Receptionist', // Default value is still Receptionist
   });
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -29,26 +30,30 @@ export default function StaffSignupPage() {
     }
 
     try {
+      // Send registration data to the backend, including designation
       await axios.post('http://localhost:5000/api/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: 'staff',
+        role: 'staff', 
+        designation: formData.designation, // Send the selected designation
       });
-      alert('Staff registration successful!');
+      
+      alert('Staff registration successful! Please log in.');
       router.push('/login');
-    } catch (error) {
+    } catch (err) {
       setError('Registration failed. Please try again.');
-      console.error('Registration error:', error);
+      console.error('Registration error:', err);
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">Staff Sign Up</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center text-yellow-600">Staff Sign Up</h1>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
+          
           <div>
             <label className="block text-gray-700">Full Name</label>
             <input
@@ -58,7 +63,7 @@ export default function StaffSignupPage() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-yellow-200"
             />
           </div>
           <div>
@@ -70,9 +75,25 @@ export default function StaffSignupPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-yellow-200"
             />
           </div>
+          
+          <div>
+            <label className="block text-gray-700">Designation</label>
+            <select
+              name="designation"
+              value={formData.designation}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-yellow-200"
+            >
+              <option value="Receptionist">Receptionist</option>
+              <option value="Lab Technician">Lab Technician</option> {/* Updated Name */}
+              <option value="Pharmacist">Pharmacist</option>
+            </select>
+          </div>
+
           <div>
             <label className="block text-gray-700">Password</label>
             <input
@@ -82,7 +103,7 @@ export default function StaffSignupPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-yellow-200"
             />
           </div>
           <div>
@@ -94,9 +115,10 @@ export default function StaffSignupPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-yellow-200"
             />
           </div>
+          
           <button
             type="submit"
             className="w-full p-3 bg-yellow-600 text-white rounded-md font-semibold hover:bg-yellow-700 transition duration-300"

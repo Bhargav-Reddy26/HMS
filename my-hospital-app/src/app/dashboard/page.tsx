@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import PatientDashboard from './patient/page';
-import DoctorDashboard from './doctor/page'; // New: Import Doctor Dashboard
+import DoctorDashboard from './doctor/page';
+import AdminDashboard from './admin/page';
+
 
 interface User {
   id: string;
@@ -53,7 +55,11 @@ export default function DashboardPage() {
   }
   
   if (user?.role === 'doctor') {
-    return <DoctorDashboard />; // New: Render Doctor Dashboard
+    return <DoctorDashboard />;
+  }
+
+  if (user?.role === 'admin') {
+    return <AdminDashboard />;
   }
 
   // Fallback for unhandled roles
