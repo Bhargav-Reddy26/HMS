@@ -7,7 +7,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 // User Registration
 export const registerUser = async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body;
+  // CRITICAL: Extract designation from the payload for staff/admin roles
+  const { name, email, password, role, designation } = req.body;
 
   try {
     // 1. Check if user already exists
@@ -42,13 +43,12 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const newUserId = newUser[0].user_id;
 
-    // 4. Conditionally create a record in the Doctor or Patient table
-    // This works because all auxiliary columns are now NULLABLE.
+    // 4. Conditionally create a record in the auxiliary table based on role
     if (role === 'doctor') {
       const { error: doctorInsertError } = await supabase
         .from('Doctor')
         .insert([
-          { user_id: newUserId } 
+          { user_id: newUserId }
         ]);
 
       if (doctorInsertError) {
@@ -63,6 +63,20 @@ export const registerUser = async (req: Request, res: Response) => {
 
       if (patientInsertError) {
         throw patientInsertError;
+      }
+    } else if (role === 'staff') {
+      // CRITICAL FIX: Insert designation for staff
+      const { error: staffInsertError } = await supabase
+        .from('Staff')
+        .insert([
+          { 
+            user_id: newUserId,
+            designation: designation || 'Unassigned' // Use submitted designation
+          }
+        ]);
+
+      if (staffInsertError) {
+        throw staffInsertError;
       }
     }
 
