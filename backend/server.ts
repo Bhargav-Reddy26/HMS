@@ -14,8 +14,13 @@ import doctorAppointmentRoutes from './routes/doctor/appointmentRoutes';
 import adminDoctorRoutes from './routes/admin/doctorRoutes'; 
 import adminPatientRoutes from './routes/admin/patientRoutes'; 
 import adminProfileRoutes from './routes/admin/profileRoutes';
+import adminStaffRoutes from './routes/admin/staffRoutes';
 import staffProfileRoutes from './routes/staff/profileRoutes';
 import labRoutes from './routes/staff/labRoutes'; 
+import patientRegistrationRoutes from './routes/staff/patientRegistrationRoutes';
+import adminDepartmentRoutes from './routes/admin/departmentsRoutes';
+import adminSettingsRoutes from './routes/admin/settingsRoutes';
+import adminAuditRoutes from './routes/admin/auditRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,12 +41,17 @@ app.use('/api/doctor', doctorAppointmentRoutes);
 // --- Admin Routes (FIX: Link all files explicitly) ---
 app.use('/api/admin', adminDoctorRoutes); 
 app.use('/api/admin', adminPatientRoutes); // Ensures /api/admin/patients is found
-// app.use('/api/admin', adminStaffRoutes);   // Ensures /api/admin/staff is found
+app.use('/api/admin', adminStaffRoutes);   // Ensures /api/admin/staff is found
 app.use('/api/admin', adminProfileRoutes);
+app.use('/api/admin', adminDepartmentRoutes);
+
 
 
 app.use('/api/staff', staffProfileRoutes); 
 app.use('/api/staff', labRoutes);
+app.use('/api/staff', patientRegistrationRoutes);
+app.use('/api/admin', adminSettingsRoutes);
+app.use('/api/admin', adminAuditRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
