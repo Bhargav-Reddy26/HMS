@@ -10,12 +10,13 @@ interface HospitalSettings {
     hospitalName: string;
     defaultCurrency: string;
     maxAppointmentsPerDay: number;
+    id: number; // Include the primary key for update query efficiency (though limit(1) works too)
 }
 
 export default function AdminSettingsPage() {
     const router = useRouter();
     const [settings, setSettings] = useState<HospitalSettings | null>(null);
-    const [initialSettings, setInitialSettings] = useState<HospitalSettings | null>(null); // To reset on cancel
+    const [initialSettings, setInitialSettings] = useState<HospitalSettings | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [adminName, setAdminName] = useState('Admin User'); 
@@ -33,7 +34,7 @@ export default function AdminSettingsPage() {
             if (!token) { router.push('/login'); return; }
 
             try {
-                // Fetch admin name and settings data
+                // Fetch admin name and settings data in parallel
                 const [profileResponse, settingsResponse] = await Promise.all([
                     axios.get('http://localhost:5000/api/admin/profile', { headers: { Authorization: `Bearer ${token}` } }),
                     axios.get('http://localhost:5000/api/admin/settings', { headers: { Authorization: `Bearer ${token}` } })

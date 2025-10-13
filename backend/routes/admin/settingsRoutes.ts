@@ -17,27 +17,22 @@ const restrictToAdmin = (req: AuthRequest, res: Response, next: NextFunction) =>
     next();
 };
 
-const SETTINGS_ROW_ID = 1; // Target the single row in the Settings table
-
 // --- GET ALL SETTINGS (READ) ---
-// @route   GET /api/admin/settings
-// @desc    Get the single, current hospital settings object
-// @access  Private (Admin Only)
 router.get('/settings', protect, restrictToAdmin, async (req: AuthRequest, res: Response) => {
     try {
         const { data: settings, error } = await supabase
             .from('Settings')
             .select('*')
-            .limit(1)
-            .single(); // <--- This is the method causing the crash on zero rows
+            .limit(1) // CRITICAL: Gets the single settings row
+            .single();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 is Supabase's 'no rows found' code
+        if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
             throw error;
         }
         
         if (!settings) {
-            // Handle the case of no settings found (PGRST116) gracefully by returning a 404 or default
-            return res.status(404).json({ message: 'Settings record not found. Please create initial record.' });
+            // If no settings found, return an error (or a defined default set)
+            return res.status(404).json({ message: 'Settings record not found.' });
         }
 
         res.status(200).json(settings);
@@ -48,9 +43,6 @@ router.get('/settings', protect, restrictToAdmin, async (req: AuthRequest, res: 
 });
 
 // --- UPDATE SETTINGS (PUT) ---
-// @route   PUT /api/admin/settings
-// @desc    Update the single, current hospital settings object
-// @access  Private (Admin Only)
 router.put('/settings', protect, restrictToAdmin, async (req: Request, res: Response) => {
     try {
         const updatedData = req.body;
@@ -58,7 +50,7 @@ router.put('/settings', protect, restrictToAdmin, async (req: Request, res: Resp
         const { data: updatedSettings, error } = await supabase
             .from('Settings')
             .update(updatedData)
-            .eq('id', SETTINGS_ROW_ID) // CRITICAL: Target the single row
+            .limit(1) // CRITICAL: Updates the single settings row
             .select();
 
         if (error) throw error;

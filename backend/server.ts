@@ -36,6 +36,7 @@ app.use('/api/patient', patientAppointmentRoutes);
 
 // --- Doctor Routes ---
 app.use('/api/doctor', doctorProfileRoutes);
+console.log("✅ Doctor profile routes loaded");
 app.use('/api/doctor', doctorAppointmentRoutes);
 
 // --- Admin Routes (FIX: Link all files explicitly) ---
@@ -44,6 +45,7 @@ app.use('/api/admin', adminPatientRoutes); // Ensures /api/admin/patients is fou
 app.use('/api/admin', adminStaffRoutes);   // Ensures /api/admin/staff is found
 app.use('/api/admin', adminProfileRoutes);
 app.use('/api/admin', adminDepartmentRoutes);
+app.use('/api/admin', adminSettingsRoutes);
 
 
 

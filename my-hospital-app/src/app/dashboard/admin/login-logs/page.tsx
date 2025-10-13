@@ -31,8 +31,7 @@ export default function AdminLoginLogsPage() {
             if (!token) { router.push('/login'); return; }
 
             try {
-                // NOTE: In a complete app, fetch admin name here
-                
+                // Fetch log data from the backend API
                 const response = await axios.get('http://localhost:5000/api/admin/logs', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
